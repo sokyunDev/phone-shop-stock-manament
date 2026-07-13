@@ -1,0 +1,183 @@
+<?php
+// Database Connection
+$conn = mysqli_connect("localhost", "root", "", "phone_shop");
+
+if (!$conn) {
+    die("Connection Failed: " . mysqli_connect_error());
+}
+
+// ADD PHONE
+if (isset($_POST['add'])) {
+    $brand = $_POST['brand'];
+    $model = $_POST['model'];
+    $price = $_POST['price'];
+    $stock = $_POST['stock'];
+
+    mysqli_query($conn, "INSERT INTO phones (brand, model, price, stock)
+    VALUES ('$brand','$model','$price','$stock')");
+    header("Location: index.php");
+    exit();
+}
+
+// DELETE PHONE
+if (isset($_GET['delete'])) {
+    $id = $_GET['delete'];
+    mysqli_query($conn, "DELETE FROM phones WHERE id=$id");
+    header("Location: index.php");
+    exit();
+}
+
+// UPDATE PHONE
+if (isset($_POST['update'])) {
+    $id = $_POST['id'];
+    $brand = $_POST['brand'];
+    $model = $_POST['model'];
+    $price = $_POST['price'];
+    $stock = $_POST['stock'];
+
+    mysqli_query($conn, "UPDATE phones SET
+        brand='$brand',
+        model='$model',
+        price='$price',
+        stock='$stock'
+        WHERE id=$id");
+
+    header("Location: index.php");
+    exit();
+}
+
+// EDIT DATA
+$edit = false;
+if (isset($_GET['edit'])) {
+    $edit = true;
+    $id = $_GET['edit'];
+    $phone = mysqli_fetch_assoc(mysqli_query($conn, "SELECT * FROM phones WHERE id=$id"));
+}
+?>
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Phone Shop Management</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+</head>
+
+<body class="bg-light">
+
+<div class="container mt-5">
+
+    <h2 class="text-center mb-4"><img  src="img.png" alt="Phone Icon" style="width: 50px; height: 50px;"> Phone Shop Management System</h2>
+
+    <div class="card p-4 mb-4">
+
+        <h4><?= $edit ? "Edit Phone" : "Add New Phone"; ?></h4>
+
+        <form method="POST">
+
+            <?php if($edit){ ?>
+                <input type="hidden" name="id" value="<?= $phone['id']; ?>">
+            <?php } ?>
+
+            <input type="text"
+                   name="brand"
+                   class="form-control mb-3"
+                   placeholder="Brand"
+                   value="<?= $edit ? $phone['brand'] : ''; ?>"
+                   required>
+
+            <input type="text"
+                   name="model"
+                   class="form-control mb-3"
+                   placeholder="Model"
+                   value="<?= $edit ? $phone['model'] : ''; ?>"
+                   required>
+
+            <input type="number"
+                   step="0.01"
+                   name="price"
+                   class="form-control mb-3"
+                   placeholder="Price"
+                   value="<?= $edit ? $phone['price'] : ''; ?>"
+                   required>
+
+            <input type="number"
+                   name="stock"
+                   class="form-control mb-3"
+                   placeholder="Stock"
+                   value="<?= $edit ? $phone['stock'] : ''; ?>"
+                   required>
+
+            <?php if($edit){ ?>
+                <button class="btn btn-warning" name="update">Update Phone</button>
+                <a href="index.php" class="btn btn-secondary">Cancel</a>
+            <?php } else { ?>
+                <button class="btn btn-success" name="add">Add Phone</button>
+            <?php } ?>
+
+        </form>
+
+    </div>
+
+    <table class="table table-bordered table-hover bg-white">
+
+        <thead class="table-dark">
+
+        <tr>
+            <th>ID</th>
+            <th>Brand</th>
+            <th>Model</th>
+            <th>Price ($)</th>
+            <th>Stock</th>
+            <th>Action</th>
+        </tr>
+
+        </thead>
+
+        <tbody>
+
+        <?php
+
+        $result = mysqli_query($conn, "SELECT * FROM phones ORDER BY id DESC");
+
+        while($row = mysqli_fetch_assoc($result))
+        {
+
+        ?>
+
+        <tr>
+
+            <td><?= $row['id']; ?></td>
+            <td><?= $row['brand']; ?></td>
+            <td><?= $row['model']; ?></td>
+            <td>$<?= number_format($row['price'],2); ?></td>
+            <td><?= $row['stock']; ?></td>
+
+            <td>
+
+                <a href="?edit=<?= $row['id']; ?>" class="btn btn-warning btn-sm">
+                    Edit
+                </a>
+
+                <a href="?delete=<?= $row['id']; ?>"
+                   class="btn btn-danger btn-sm"
+                   onclick="return confirm('Delete this phone?')">
+                    Delete
+                </a>
+
+            </td>
+
+        </tr>
+
+        <?php } ?>
+
+        </tbody>
+
+    </table>
+
+</div>
+
+</body>
+</html>
